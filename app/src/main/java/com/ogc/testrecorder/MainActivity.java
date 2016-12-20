@@ -1,12 +1,14 @@
 package com.ogc.testrecorder;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,10 @@ public class MainActivity extends AppCompatActivity {
     MySQLiteOpenHelper mySQLiteOpenHelper;
     SQLiteDatabase database;
 
+    static final String Intent_bookName = "bookName";
+
+    String bookTitles[];
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,26 +37,40 @@ public class MainActivity extends AppCompatActivity {
 
         int countOfBooks = countBooks();
         if(countOfBooks == 0){
-            newBook("book1");
+            insertNewBook("book1");
         }
 
+        bookTitles = new String[countOfBooks];
+
         listView = (ListView)findViewById(R.id.listView);
+        setListView();
     }
 
     public void setListView(){
 
         items = new ArrayList<>();
 
-        String title = "";
+        String title;
         int n = 0;
-        while(searchBookTitle()[n] != null){
-            title = searchBookTitle()[n];
+        bookTitles = searchBookTitle();
+        while(bookTitles[n] != null){
+            title = bookTitles[n];
             listItem item = new listItem(title);
             items.add(item);
+            n++;
         }
 
         customAdapter = new listCustomAdapter(this, R.layout.main_listview_layout, items);
         listView.setAdapter(customAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, CountActivity.class);
+                intent.putExtra(Intent_bookName, bookTitles[position]);
+                startActivity(intent);
+            }
+        });
     }
 
     public String[] searchBookTitle(){
@@ -78,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         return result;
     }
 
-    public void newBook(String title){
+    public void insertNewBook(String title){
 
         ContentValues values = new ContentValues();
         values.put(MySQLiteOpenHelper.Table_bookName, title);
@@ -91,6 +111,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void newBook(View view){
         int amountOfBooks = countBooks();
-        newBook("book" + (amountOfBooks + 1));
+        insertNewBook("book" + (amountOfBooks + 1));
     }
 }

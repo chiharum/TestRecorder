@@ -16,35 +16,63 @@
         android:layout_weight="1"
         android:gravity="center_horizontal" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:id="@+id/questionNumberText"
-        android:layout_weight="1"
-        android:gravity="center" />
-
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <Button
+        <TextView
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/incorrectButton"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/correctTimesText"
             android:layout_weight="1"
-            android:text="@string/incorrect"
-            android:onClick="incorrect" />
+            android:gravity="center" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/questionNumberText"
+            android:gravity="center"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/incorrectButton"
+                android:layout_weight="1"
+                android:text="@string/incorrect"
+                android:onClick="incorrect" />
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/correctButton"
+                android:layout_weight="1"
+                android:text="@string/correct"
+                android:onClick="correct" />
+        </LinearLayout>
 
         <Button
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/correctButton"
-            android:layout_weight="1"
-            android:text="@string/correct"
-            android:onClick="correct" />
+            android:id="@+id/moveToButton"
+            android:text="@string/move"
+            android:onClick="move" />
     </LinearLayout>
 
 </LinearLayout>
