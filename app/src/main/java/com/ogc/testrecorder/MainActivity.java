@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
@@ -27,10 +28,13 @@ public class MainActivity extends AppCompatActivity {
     listCustomAdapter customAdapter;
     List<listItem> items;
 
+    SharedPreferences preferences;
+
     MySQLiteOpenHelper mySQLiteOpenHelper;
     SQLiteDatabase database;
 
     static final String Intent_bookName = "bookName";
+    static final String Preference_lastVersion = "lastVersion";
 
     String bookTitles[];
     int recordsCounts;
@@ -44,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
         database = mySQLiteOpenHelper.getWritableDatabase();
 
         listView = (ListView)findViewById(R.id.listView);
+
+        preferences.edit().putInt(Preference_lastVersion, 2).apply();
 
         recordsCounts = countBooks();
         if(recordsCounts == 0){

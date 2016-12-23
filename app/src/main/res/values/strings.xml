@@ -3,7 +3,7 @@
     <string name="new_book">新しい本を追加</string>
     <string name="correct">正解</string>
     <string name="incorrect">不正解</string>
-    <string name="move">移動</string>
+    <string name="show_list">リストを表示</string>
     <string-array name="book_choosing_dialog_menus">
         <item>開く</item>
         <item>編集</item>

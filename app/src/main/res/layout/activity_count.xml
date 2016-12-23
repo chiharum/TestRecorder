@@ -70,9 +70,9 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/moveToButton"
-            android:text="@string/move"
-            android:onClick="move" />
+            android:id="@+id/listButton"
+            android:text="@string/show_list"
+            android:onClick="showList" />
     </LinearLayout>
 
 </LinearLayout>
