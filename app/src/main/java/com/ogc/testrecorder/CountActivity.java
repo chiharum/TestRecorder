@@ -8,7 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class CountActivity extends AppCompatActivity {
 
@@ -52,10 +51,10 @@ public class CountActivity extends AppCompatActivity {
         int[] result = new int[2];
 
         try{
-            cursor = database.query(MySQLiteOpenHelper.ContentsTableName, new String[]{MySQLiteOpenHelper.ContentsTable_timesCorrect, MySQLiteOpenHelper.ContentsTable_timesChallenged}, MySQLiteOpenHelper.Table_bookName + " = ? and " + MySQLiteOpenHelper.ContentsTable_questionNumber + " = ?", new String[]{bookName, String.valueOf(screenQuestionNumber)}, null, null, null);
+            cursor = database.query(MySQLiteOpenHelper.ContentsTableName, new String[]{MySQLiteOpenHelper.ContentsTable_integer_timesCorrect, MySQLiteOpenHelper.ContentsTable_integer_timesChallenged}, MySQLiteOpenHelper.Table_string_bookName + " = ? and " + MySQLiteOpenHelper.ContentsTable_integer_questionNumber + " = ?", new String[]{bookName, String.valueOf(screenQuestionNumber)}, null, null, null);
 
-            int indexCorrectTimes = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_timesCorrect);
-            int indexChallengedTimes = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_timesChallenged);
+            int indexCorrectTimes = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_integer_timesCorrect);
+            int indexChallengedTimes = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_integer_timesChallenged);
 
             while(cursor.moveToNext()){
                 int correctTimes = cursor.getInt(indexCorrectTimes);
@@ -74,10 +73,10 @@ public class CountActivity extends AppCompatActivity {
 
     public void saveScreen(int correctTimesChange){
         ContentValues values = new ContentValues();
-        values.put(MySQLiteOpenHelper.Table_bookName, bookName);
-        values.put(MySQLiteOpenHelper.ContentsTable_questionNumber, screenQuestionNumber);
-        values.put(MySQLiteOpenHelper.ContentsTable_timesChallenged, screenChallengedTimes + 1);
-        values.put(MySQLiteOpenHelper.ContentsTable_timesCorrect, screenCorrectTimes + correctTimesChange);
+        values.put(MySQLiteOpenHelper.Table_string_bookName, bookName);
+        values.put(MySQLiteOpenHelper.ContentsTable_integer_questionNumber, screenQuestionNumber);
+        values.put(MySQLiteOpenHelper.ContentsTable_integer_timesChallenged, screenChallengedTimes + 1);
+        values.put(MySQLiteOpenHelper.ContentsTable_integer_timesCorrect, screenCorrectTimes + correctTimesChange);
         database.insert(MySQLiteOpenHelper.ContentsTableName, null, values);
     }
 

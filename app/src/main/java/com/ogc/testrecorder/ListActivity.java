@@ -31,10 +31,12 @@ public class ListActivity extends AppCompatActivity {
         mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
         database = mySQLiteOpenHelper.getWritableDatabase();
 
+        // TODO: 2016/12/28 目標数に達していないものをピックアップし表示させる
+
         questionsListView = (ListView)findViewById(R.id.questionsListView);
 
         screenBookTitle = getIntent().getStringExtra(CountActivity.Intent_bookTitle);
-        screenRecordsNumber = (int) DatabaseUtils.queryNumEntries(database, MySQLiteOpenHelper.ContentsTableName, MySQLiteOpenHelper.Table_bookName + " = ?", new String[]{screenBookTitle});
+        screenRecordsNumber = (int) DatabaseUtils.queryNumEntries(database, MySQLiteOpenHelper.ContentsTableName, MySQLiteOpenHelper.Table_string_bookName + " = ?", new String[]{screenBookTitle});
 
         setQuestionsListView();
     }
@@ -58,10 +60,10 @@ public class ListActivity extends AppCompatActivity {
         int[] result = new int[2];
 
         try{
-            cursor = database.query(MySQLiteOpenHelper.ContentsTableName, new String[]{MySQLiteOpenHelper.ContentsTable_timesCorrect, MySQLiteOpenHelper.ContentsTable_timesChallenged}, MySQLiteOpenHelper.Table_bookName + " = ? and " + MySQLiteOpenHelper.ContentsTable_questionNumber + " = ?", new String[]{screenBookTitle, String.valueOf(questionNumber)}, null, null, null);
+            cursor = database.query(MySQLiteOpenHelper.ContentsTableName, new String[]{MySQLiteOpenHelper.ContentsTable_integer_timesCorrect, MySQLiteOpenHelper.ContentsTable_integer_timesChallenged}, MySQLiteOpenHelper.Table_string_bookName + " = ? and " + MySQLiteOpenHelper.ContentsTable_integer_questionNumber + " = ?", new String[]{screenBookTitle, String.valueOf(questionNumber)}, null, null, null);
 
-            int indexTimesCorrect = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_timesCorrect);
-            int indexTimesChallenged = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_timesChallenged);
+            int indexTimesCorrect = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_integer_timesCorrect);
+            int indexTimesChallenged = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_integer_timesChallenged);
 
             while(cursor.moveToNext()){
                 result[0] = cursor.getInt(indexTimesCorrect);

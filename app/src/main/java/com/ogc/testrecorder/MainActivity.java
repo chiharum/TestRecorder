@@ -5,6 +5,8 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
@@ -15,16 +17,17 @@ import android.text.SpannableStringBuilder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     ListView listView;
+    Button newBookButton;
 
     listCustomAdapter customAdapter;
     List<listItem> items;
@@ -36,9 +39,12 @@ public class MainActivity extends AppCompatActivity {
 
     static final String Intent_bookName = "bookName";
     static final String Preference_lastVersion = "lastVersion";
+    static final String Intent_sectionName = "sectionName";
+    static final int Version = 3;
 
-    String bookTitles[];
-    int recordsCounts;
+    String bookTitles[], bookTitle;
+    int recordsCounts, lastVersion;
+    boolean screenIsSection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,10 +54,21 @@ public class MainActivity extends AppCompatActivity {
         mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
         database = mySQLiteOpenHelper.getWritableDatabase();
 
+        // TODO: 2016/12/28 データの引き継ぎ
+
         listView = (ListView)findViewById(R.id.listView);
+        newBookButton = (Button)findViewById(R.id.newBookButton);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        preferences.edit().putInt(Preference_lastVersion, 2).apply();
+        lastVersion = preferences.getInt(Preference_lastVersion, Version);
+        preferences.edit().putInt(Preference_lastVersion, Version).apply();
+
+        if(lastVersion < 3){
+            // TODO: 2016/12/28 データ引き継ぎ http://miquniqu.blogspot.jp/2012/01/androidsqlite.htmlとか？
+        }
+
+        screenIsSection = false;
+        setNewBookButton();
 
         recordsCounts = countBooks();
         if(recordsCounts == 0){
@@ -67,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
         String title;
         bookTitles = new String[recordsCounts];
-        bookTitles = getBookTitles();
+        bookTitles = getTitles();
         int n;
         for(n = 0; n < recordsCounts; n++){
             title = bookTitles[n];
@@ -85,19 +102,24 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public String[] getBookTitles(){
+    public String[] getTitles(){
 
         Cursor cursor = null;
         recordsCounts = countBooks();
         String[] result = new String[recordsCounts];
 
         try{
-            cursor = database.query(MySQLiteOpenHelper.BooksTableName, new String[]{MySQLiteOpenHelper.Table_bookName}, null, null, null, null, null);
-            int indexBookName = cursor.getColumnIndex(MySQLiteOpenHelper.Table_bookName);
+            cursor = database.query(MySQLiteOpenHelper.BooksTableName, new String[]{MySQLiteOpenHelper.Table_string_bookName, MySQLiteOpenHelper.BooksTable_boolean_isSection}, null, null, null, null, null);
+            int indexTitle;
+            if(screenIsSection){
+                indexTitle = cursor.getColumnIndex(MySQLiteOpenHelper.Table_string_bookName);
+            }else{
+                indexTitle = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_string_sectionName);
+            }
 
             int n = 0;
             while(cursor.moveToNext()){
-                result[n] = cursor.getString(indexBookName);
+                result[n] = cursor.getString(indexTitle);
                 n++;
             }
         } finally {
@@ -109,9 +131,10 @@ public class MainActivity extends AppCompatActivity {
         return result;
     }
 
-    public void insertNewBook(String title){
+    public void insertNewBook(String title, boolean isSection){
         ContentValues values = new ContentValues();
-        values.put(MySQLiteOpenHelper.Table_bookName, title);
+        values.put(MySQLiteOpenHelper.Table_string_bookName, title);
+        values.put(MySQLiteOpenHelper.BooksTable_boolean_isSection, isSection);
         database.insert(MySQLiteOpenHelper.BooksTableName, null, values);
         recordsCounts++;
         setListView();
@@ -120,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
     public void updateBook(int position, String title){
 
         ContentValues values = new ContentValues();
-        values.put(MySQLiteOpenHelper.Table_bookName, title);
+        values.put(MySQLiteOpenHelper.Table_string_bookName, title);
         database.update(MySQLiteOpenHelper.BooksTableName, values, "id = ?", new String[]{String.valueOf(position)});
         setListView();
     }
@@ -161,10 +184,14 @@ public class MainActivity extends AppCompatActivity {
                     text = spannableStringBuilder.toString();
 
                     if (isNew){
-                        insertNewBook(text);
+                        if(screenIsSection){
+                            insertNewBook(text, true);
+                        }else{
+                            insertNewBook(text, false);
+                        }
                     }else{
                         if (id == 0){
-                            Toast.makeText(MainActivity.this, "idの値が不正です。", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "idの値が不正です。(id = 0)", Toast.LENGTH_SHORT).show();
                         }else{
                             updateBook(id, text);
                         }
@@ -185,10 +212,17 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 if (which == 0) {
                     //開く
-                    Intent intent = new Intent();
-                    intent.setClass(MainActivity.this, CountActivity.class);
-                    intent.putExtra(Intent_bookName, bookTitles[position]);
-                    startActivity(intent);
+                    if (screenIsSection) {
+                        Intent intent = new Intent();
+                        intent.setClass(MainActivity.this, CountActivity.class);
+                        intent.putExtra(Intent_bookName, bookTitles);
+                        intent.putExtra(Intent_sectionName, bookTitles[position]);
+                        startActivity(intent);
+                    }else{
+                        bookTitle = bookTitles[position];
+                        screenIsSection = true;
+                        setListView();
+                    }
 
                 } else if (which == 1) {
                     //編集
@@ -200,6 +234,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         alertDialogBuilder.show();
+    }
+
+    public void setNewBookButton(){
+        if(screenIsSection){
+            newBookButton.setText(getResources().getString(R.string.new_section));
+        }else{
+            newBookButton.setText(getResources().getString(R.string.new_book));
+        }
     }
 
     public void newBook(View view){

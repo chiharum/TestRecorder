@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">暗記テスト</string>
     <string name="new_book">新しい本を追加</string>
+    <string name="new_section">新しい章を追加</string>
     <string name="correct">正解</string>
     <string name="incorrect">不正解</string>
     <string name="show_list">リストを表示</string>
