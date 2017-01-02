@@ -5,8 +5,6 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
@@ -43,8 +41,12 @@ public class MainActivity extends AppCompatActivity {
     static final int Version = 3;
 
     String bookTitles[], bookTitle;
-    int recordsCounts, lastVersion;
+    int amountOfBooks, lastVersion;
     boolean screenIsSection;
+
+    //一時的
+    boolean isUpdatingAndAddingBook;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +56,6 @@ public class MainActivity extends AppCompatActivity {
         mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
         database = mySQLiteOpenHelper.getWritableDatabase();
 
-        // TODO: 2016/12/28 データの引き継ぎ
-
         listView = (ListView)findViewById(R.id.listView);
         newBookButton = (Button)findViewById(R.id.newBookButton);
 
@@ -64,14 +64,24 @@ public class MainActivity extends AppCompatActivity {
         preferences.edit().putInt(Preference_lastVersion, Version).apply();
 
         if(lastVersion < 3){
-            // TODO: 2016/12/28 データ引き継ぎ http://miquniqu.blogspot.jp/2012/01/androidsqlite.htmlとか？
+            // TODO: 2017/01/02 本の名前を決めさせ、セクションを本に入れる
+            isUpdatingAndAddingBook = true;
+            showUpdateDialog();
+            while(isUpdatingAndAddingBook){
+                editBookTitle(true, 0);
+            }
+
+            amountOfBooks = countBooks();
+            for (int i = 0; i < amountOfBooks; i++){
+
+            }
         }
 
         screenIsSection = false;
         setNewBookButton();
 
-        recordsCounts = countBooks();
-        if(recordsCounts == 0){
+        amountOfBooks = countBooks();
+        if(amountOfBooks == 0){
             editBookTitle(true, 0);
         }else{
             setListView();
@@ -83,10 +93,10 @@ public class MainActivity extends AppCompatActivity {
         items = new ArrayList<>();
 
         String title;
-        bookTitles = new String[recordsCounts];
+        bookTitles = new String[amountOfBooks];
         bookTitles = getTitles();
         int n;
-        for(n = 0; n < recordsCounts; n++){
+        for(n = 0; n < amountOfBooks; n++){
             title = bookTitles[n];
             listItem item = new listItem(title);
             items.add(item);
@@ -105,8 +115,8 @@ public class MainActivity extends AppCompatActivity {
     public String[] getTitles(){
 
         Cursor cursor = null;
-        recordsCounts = countBooks();
-        String[] result = new String[recordsCounts];
+        amountOfBooks = countBooks();
+        String[] result = new String[amountOfBooks];
 
         try{
             cursor = database.query(MySQLiteOpenHelper.BooksTableName, new String[]{MySQLiteOpenHelper.Table_string_bookName, MySQLiteOpenHelper.BooksTable_boolean_isSection}, null, null, null, null, null);
@@ -136,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
         values.put(MySQLiteOpenHelper.Table_string_bookName, title);
         values.put(MySQLiteOpenHelper.BooksTable_boolean_isSection, isSection);
         database.insert(MySQLiteOpenHelper.BooksTableName, null, values);
-        recordsCounts++;
+        amountOfBooks++;
         setListView();
     }
 
@@ -150,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void deleteBook(int id){
         database.delete(MySQLiteOpenHelper.BooksTableName, "id = ?", new String[]{String.valueOf(id)});
-        recordsCounts--;
+        amountOfBooks--;
         setListView();
     }
 
@@ -179,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
 
                 SpannableStringBuilder spannableStringBuilder = (SpannableStringBuilder) editText.getText();
                 if (spannableStringBuilder == null) {
-                    Toast.makeText(MainActivity.this, "nullはタイトルにできません。文字列を入力してください。", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "nullはタイトルにできません。文字列を入力してください。文字列を入力している場合はエラーですのでレビュー投稿もしくは開発者にメールしてください。", Toast.LENGTH_LONG).show();
                 } else {
                     text = spannableStringBuilder.toString();
 
@@ -188,6 +198,9 @@ public class MainActivity extends AppCompatActivity {
                             insertNewBook(text, true);
                         }else{
                             insertNewBook(text, false);
+                            if(isUpdatingAndAddingBook){
+                                checkIsFinished();
+                            }
                         }
                     }else{
                         if (id == 0){
@@ -218,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtra(Intent_bookName, bookTitles);
                         intent.putExtra(Intent_sectionName, bookTitles[position]);
                         startActivity(intent);
-                    }else{
+                    } else {
                         bookTitle = bookTitles[position];
                         screenIsSection = true;
                         setListView();
@@ -246,5 +259,103 @@ public class MainActivity extends AppCompatActivity {
 
     public void newBook(View view){
         editBookTitle(true, 0);
+    }
+
+    //version 4をアップデートしたら消す
+
+    public String[] searchContentsTable(int id){
+
+        Cursor cursor = null;
+        amountOfBooks = countBooks();
+        String[] result = new String[amountOfBooks];
+
+        try{
+            cursor = database.query(MySQLiteOpenHelper.BooksTableName, new String[]{MySQLiteOpenHelper.Table_string_bookName, MySQLiteOpenHelper.ContentsTable_integer_questionNumber, MySQLiteOpenHelper.ContentsTable_integer_timesChallenged, MySQLiteOpenHelper.ContentsTable_integer_timesCorrect}, "id = ?", new String[]{String.valueOf(id)}, null, null, null);
+            int indexBookName = cursor.getColumnIndex(MySQLiteOpenHelper.Table_string_bookName);
+            int indexQuestionNumber = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_integer_questionNumber);
+            int indexTimesChallenged = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_integer_timesChallenged);
+            int indexTimesCorrect = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_integer_timesCorrect);
+
+            while(cursor.moveToNext()){
+                result[0] = cursor.getString(indexBookName);
+                result[1] = String.valueOf(cursor.getInt(indexQuestionNumber));
+                result[2] = String.valueOf(cursor.getInt(indexTimesChallenged));
+                result[3] = String.valueOf(cursor.getInt(indexTimesCorrect));
+            }
+        }finally {
+            if(cursor != null){
+                cursor.close();
+            }
+        }
+
+        return result;
+    }
+
+    public void showUpdateDialog(){
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle(getResources().getString(R.string.update_dialog_on_version_4_title));
+        alertDialogBuilder.setMessage(getResources().getString(R.string.update_dialog_on_version_4_message));
+        alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                editBookTitle(true, 0);
+            }
+        });
+        alertDialogBuilder.show();
+    }
+
+    public void checkIsFinished(){
+        String[] contents = {"まだ本を追加する", "既存のデータをセクションに分ける"};
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle(getResources().getString(R.string.update_dialog_on_version_4_is_finished_dialog_title));
+        alertDialogBuilder.setItems(contents, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (which == 0) {
+                    editBookTitle(true, 0);
+                } else {
+                    isUpdatingAndAddingBook = false;
+                }
+            }
+        });
+    }
+
+    public void showBookTitleAndSetInSection(String eachBookTitle){
+
+        Cursor cursor = null;
+        amountOfBooks = countBooks();
+        int amountOfOld = (int)DatabaseUtils.queryNumEntries(database, MySQLiteOpenHelper.BooksTableNameOld);
+        String[] titles = new String[amountOfOld];
+
+        try{
+            cursor = database.query(MySQLiteOpenHelper.BooksTableName, new String[]{MySQLiteOpenHelper.Table_string_bookName, MySQLiteOpenHelper.BooksTable_boolean_isSection}, null, null, null, null, null);
+            int indexTitle;
+            if(screenIsSection){
+                indexTitle = cursor.getColumnIndex(MySQLiteOpenHelper.Table_string_bookName);
+            }else{
+                indexTitle = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_string_sectionName);
+            }
+
+            int n = 0;
+            while(cursor.moveToNext()){
+                titles[n] = cursor.getString(indexTitle);
+                n++;
+            }
+        } finally {
+            if(cursor != null){
+                cursor.close();
+            }
+        }
+
+
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("本（" + eachBookTitle + "）に追加するセクションを選択");
+        alertDialogBuilder.setMultiChoiceItems(titles, null, new DialogInterface.OnMultiChoiceClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+
+            }
+        });
     }
 }

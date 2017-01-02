@@ -8,8 +8,11 @@ android {
         applicationId "com.ogc.testrecorder"
         minSdkVersion 14
         targetSdkVersion 23
-        versionCode 3
-        versionName "1.1.1"
+
+        //updated to Version 4 on 170102
+        //released Version 3 on 161223
+        versionCode 4
+        versionName "2.0"
     }
     buildTypes {
         release {

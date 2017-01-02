@@ -20,6 +20,9 @@ public class MySQLiteOpenHelper extends SQLiteOpenHelper {
     static final String ContentsTable_integer_timesChallenged = "times_challenged";
     static final String ContentsTable_integer_timesCorrect = "times_correct";
 
+    static final String BooksTableNameOld = "GroupNamesTable";
+    static final String ContentsTableNameOld = "ContentsTable";
+
     public MySQLiteOpenHelper(Context context){
         super(context, Database, null, DatabaseVersion);
     }

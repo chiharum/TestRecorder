@@ -10,4 +10,7 @@
         <item>編集</item>
         <item>削除</item>
     </string-array>
+    <string name="update_dialog_on_version_4_title">バージョン2.0の新機能</string>
+    <string name="update_dialog_on_version_4_message">バージョン2.0では、本と章に分けることができるようになりました。¥nこの後に出てくるダイアログ内の指示に従って、本を設定し、既存のデータを章にし、本ごとに別れるようにしてください。¥n下のOKのボタンを押すと本の名前を選択するダイアログが表示されます。</string>
+    <string name="update_dialog_on_version_4_is_finished_dialog_title">本を追加しますか？データをセクションにいれますか？</string>
 </resources>
