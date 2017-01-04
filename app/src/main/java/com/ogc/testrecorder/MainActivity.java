@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                 editBookTitle(true, 0);
             }
 
-            amountOfBooks = countBooks();
+            amountOfBooks = countBooks(MySQLiteOpenHelper.BooksTableName);
             for (int i = 0; i < amountOfBooks; i++){
 
             }
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         screenIsSection = false;
         setNewBookButton();
 
-        amountOfBooks = countBooks();
+        amountOfBooks = countBooks(MySQLiteOpenHelper.BooksTableName);
         if(amountOfBooks == 0){
             editBookTitle(true, 0);
         }else{
@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
     public String[] getTitles(){
 
         Cursor cursor = null;
-        amountOfBooks = countBooks();
+        amountOfBooks = countBooks(MySQLiteOpenHelper.BooksTableName);
         String[] result = new String[amountOfBooks];
 
         try{
@@ -164,8 +164,8 @@ public class MainActivity extends AppCompatActivity {
         setListView();
     }
 
-    public int countBooks(){
-        return (int)DatabaseUtils.queryNumEntries(database, MySQLiteOpenHelper.BooksTableName);
+    public int countBooks(String tableName){
+        return (int)DatabaseUtils.queryNumEntries(database, tableName);
     }
 
     public void editBookTitle(final boolean isNew, final int id){
@@ -263,14 +263,14 @@ public class MainActivity extends AppCompatActivity {
 
     //version 4をアップデートしたら消す
 
-    public String[] searchContentsTable(int id){
+    public String[] searchContentsTableOld(int id){
 
         Cursor cursor = null;
-        amountOfBooks = countBooks();
+        amountOfBooks = countBooks(MySQLiteOpenHelper.ContentsTableNameOld);
         String[] result = new String[amountOfBooks];
 
         try{
-            cursor = database.query(MySQLiteOpenHelper.BooksTableName, new String[]{MySQLiteOpenHelper.Table_string_bookName, MySQLiteOpenHelper.ContentsTable_integer_questionNumber, MySQLiteOpenHelper.ContentsTable_integer_timesChallenged, MySQLiteOpenHelper.ContentsTable_integer_timesCorrect}, "id = ?", new String[]{String.valueOf(id)}, null, null, null);
+            cursor = database.query(MySQLiteOpenHelper.ContentsTableNameOld, new String[]{MySQLiteOpenHelper.Table_string_bookName, MySQLiteOpenHelper.ContentsTable_integer_questionNumber, MySQLiteOpenHelper.ContentsTable_integer_timesChallenged, MySQLiteOpenHelper.ContentsTable_integer_timesCorrect}, "id = ?", new String[]{String.valueOf(id)}, null, null, null);
             int indexBookName = cursor.getColumnIndex(MySQLiteOpenHelper.Table_string_bookName);
             int indexQuestionNumber = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_integer_questionNumber);
             int indexTimesChallenged = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_integer_timesChallenged);
@@ -320,10 +320,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void showBookTitleAndSetInSection(String eachBookTitle){
+    public void showBookTitleAndSetInSection(){
 
         Cursor cursor = null;
-        amountOfBooks = countBooks();
+        amountOfBooks = countBooks(MySQLiteOpenHelper.BooksTableName);
         int amountOfOld = (int)DatabaseUtils.queryNumEntries(database, MySQLiteOpenHelper.BooksTableNameOld);
         String[] titles = new String[amountOfOld];
 
@@ -347,15 +347,24 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        String eachBookTitle;
 
+        for(int i = 0; i < amountOfBooks; i++){
 
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setTitle("本（" + eachBookTitle + "）に追加するセクションを選択");
-        alertDialogBuilder.setMultiChoiceItems(titles, null, new DialogInterface.OnMultiChoiceClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+            eachBookTitle = titles[i];
 
-            }
-        });
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            alertDialogBuilder.setTitle("本（" + eachBookTitle + "）に追加するセクションを選択");
+            alertDialogBuilder.setMultiChoiceItems(titles, null, new DialogInterface.OnMultiChoiceClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                    // TODO: 2017/01/04 チェックされたwhichを配列に入れ、下のメソッドを実行
+                }
+            });
+        }
+    }
+
+    public void searchAndSaveContentsOldInNewDatabase(int id){
+        // TODO: 2017/01/04 idを受け取り、そのデータの要素をContentsTableOldのデータベースから取得し、新しいContentsTableに入れる
     }
 }
