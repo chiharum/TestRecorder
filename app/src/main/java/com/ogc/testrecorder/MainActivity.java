@@ -38,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
     static final String Intent_bookName = "bookName";
     static final String Preference_lastVersion = "lastVersion";
     static final String Intent_sectionName = "sectionName";
+
+    //アプデで変更
     static final int Version = 3;
 
     String bookTitles[], bookTitle;
@@ -63,19 +65,19 @@ public class MainActivity extends AppCompatActivity {
         lastVersion = preferences.getInt(Preference_lastVersion, Version);
         preferences.edit().putInt(Preference_lastVersion, Version).apply();
 
-        if(lastVersion < 3){
-            // TODO: 2017/01/02 本の名前を決めさせ、セクションを本に入れる
-            isUpdatingAndAddingBook = true;
-            showUpdateDialog();
-            while(isUpdatingAndAddingBook){
-                editBookTitle(true, 0);
-            }
-
-            amountOfBooks = countBooks(MySQLiteOpenHelper.BooksTableName);
-            for (int i = 0; i < amountOfBooks; i++){
-
-            }
-        }
+//        if(lastVersion < 3){
+//            // TODO: 2017/01/02 本の名前を決めさせ、セクションを本に入れる
+//            isUpdatingAndAddingBook = true;
+//            showUpdateDialog();
+//            while(isUpdatingAndAddingBook){
+//                editBookTitle(true, 0);
+//            }
+//
+//            amountOfBooks = countBooks(MySQLiteOpenHelper.BooksTableName);
+//            for (int i = 0; i < amountOfBooks; i++){
+//
+//            }
+//        }
 
         screenIsSection = false;
         setNewBookButton();
@@ -92,11 +94,10 @@ public class MainActivity extends AppCompatActivity {
 
         items = new ArrayList<>();
 
-        String title;
         bookTitles = new String[amountOfBooks];
         bookTitles = getTitles();
-        int n;
-        for(n = 0; n < amountOfBooks; n++){
+        String title;
+        for(int n = 0; n < amountOfBooks; n++){
             title = bookTitles[n];
             listItem item = new listItem(title);
             items.add(item);
@@ -119,13 +120,9 @@ public class MainActivity extends AppCompatActivity {
         String[] result = new String[amountOfBooks];
 
         try{
-            cursor = database.query(MySQLiteOpenHelper.BooksTableName, new String[]{MySQLiteOpenHelper.Table_string_bookName, MySQLiteOpenHelper.BooksTable_boolean_isSection}, null, null, null, null, null);
+            cursor = database.query(MySQLiteOpenHelper.BooksTableName, new String[]{MySQLiteOpenHelper.Table_string_bookName}, MySQLiteOpenHelper.BooksTable_boolean_isSection + " = ?", new String[]{String.valueOf(screenIsSection)}, null, null, null);
             int indexTitle;
-            if(screenIsSection){
-                indexTitle = cursor.getColumnIndex(MySQLiteOpenHelper.Table_string_bookName);
-            }else{
-                indexTitle = cursor.getColumnIndex(MySQLiteOpenHelper.ContentsTable_string_sectionName);
-            }
+            indexTitle = cursor.getColumnIndex(MySQLiteOpenHelper.Table_string_bookName);
 
             int n = 0;
             while(cursor.moveToNext()){
@@ -209,6 +206,8 @@ public class MainActivity extends AppCompatActivity {
                             updateBook(id, text);
                         }
                     }
+
+                    setListView();
                 }
             }
         });
@@ -262,6 +261,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //version 4をアップデートしたら消す
+    /*
+    * わかっているのかね？
+    * アプデしたら消すのだぞ？
+    * それができないものはいらん！
+    * まあ、厳しく言うつもりはなかったんだ
+    * いいか、消すのだぞ？
+    * */
 
     public String[] searchContentsTableOld(int id){
 
@@ -353,12 +359,21 @@ public class MainActivity extends AppCompatActivity {
 
             eachBookTitle = titles[i];
 
+            final ArrayList<Integer> checkedIds = new ArrayList<Integer>();
+
             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
             alertDialogBuilder.setTitle("本（" + eachBookTitle + "）に追加するセクションを選択");
             alertDialogBuilder.setMultiChoiceItems(titles, null, new DialogInterface.OnMultiChoiceClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                    // TODO: 2017/01/04 チェックされたwhichを配列に入れ、下のメソッドを実行
+                    if (isChecked) checkedIds.add(which);
+                    else checkedIds.remove(which);
+                }
+            });
+            alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // TODO: 2017/01/05 下のメソッドを実行
                 }
             });
         }

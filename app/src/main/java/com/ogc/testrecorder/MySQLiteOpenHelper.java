@@ -28,7 +28,7 @@ public class MySQLiteOpenHelper extends SQLiteOpenHelper {
     }
 
     public void onCreate(SQLiteDatabase database){
-        database.execSQL("create table " + BooksTableName + " (" + Table_integer_id + " integer primary key autoincrement not null, " + Table_string_bookName + " string not null" + BooksTable_boolean_isSection + " boolean not null)");
+        database.execSQL("create table " + BooksTableName + " (" + Table_integer_id + " integer primary key autoincrement not null, " + Table_string_bookName + " string not null, " + BooksTable_boolean_isSection + " boolean not null)");
         database.execSQL("create table " + ContentsTableName + " (" + Table_integer_id + " integer primary key autoincrement not null, " + Table_string_bookName + " string not null, " + ContentsTable_string_sectionName + " string not null, " + ContentsTable_integer_questionNumber + " integer not null, " + ContentsTable_integer_timesChallenged + " integer not null, " + ContentsTable_integer_timesCorrect + " integer not null)");
     }
 
@@ -36,7 +36,7 @@ public class MySQLiteOpenHelper extends SQLiteOpenHelper {
 
         if(oldVersion == 1 && newVersion == 2){
             // TODO: 2016/12/26 バージョンをアップして本・セクションに分けるのを可能にする
-            database.execSQL("create table " + BooksTableName + " (" + Table_integer_id + " integer primary key autoincrement not null, " + Table_string_bookName + " string not null" + BooksTable_boolean_isSection + " boolean not null)");
+            database.execSQL("create table " + BooksTableName + " (" + Table_integer_id + " integer primary key autoincrement not null, " + Table_string_bookName + " string not null, " + BooksTable_boolean_isSection + " boolean not null)");
             database.execSQL("create table " + ContentsTableName + " (" + Table_integer_id + " integer primary key autoincrement not null, " + Table_string_bookName + " string not null, " + ContentsTable_string_sectionName + " string not null, " + ContentsTable_integer_questionNumber + " integer not null, " + ContentsTable_integer_timesChallenged + " integer not null, " + ContentsTable_integer_timesCorrect + " integer not null)");
         }
     }
